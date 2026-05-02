@@ -11,10 +11,12 @@ TMPDIR=$(mktemp -d /tmp/exe-setup.XXXXXX)
 trap 'rm -rf "$TMPDIR"' EXIT
 
 echo "[exe-setup] Fetching repository metadata..."
-TARBALL_URL=$(curl -fsSL "$REPO_API" | jq -r '.tarball_url')
+REPO_JSON=$(curl -fsSL "$REPO_API")
+TARBALL_URL=$(echo "$REPO_JSON" | jq -r '.tarball_url')
+DEFAULT_BRANCH=$(echo "$REPO_JSON" | jq -r '.default_branch // "main"')
 if [ -z "$TARBALL_URL" ] || [ "$TARBALL_URL" = "null" ]; then
-  echo "[exe-setup] ERROR: Failed to resolve repository tarball URL for $REPO" >&2
-  exit 1
+  echo "[exe-setup] tarball_url was null, constructing from default_branch ($DEFAULT_BRANCH)..."
+  TARBALL_URL="https://api.github.com/repos/$REPO/tarball/$DEFAULT_BRANCH"
 fi
 
 echo "[exe-setup] Downloading latest $REPO tarball..."
