@@ -36,13 +36,17 @@ elif command -v node >/dev/null 2>&1; then
 else
   NODE_VERSION=$(curl -fsSL https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false)][0].version')
   echo "[exe-setup] Installing Node.js $NODE_VERSION (standalone)..."
-  NODE_ARCH=$(uname -m)
-  NODE_TAR="${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz"
-  TMPDIR=$(mktemp -d /tmp/node-install.XXXXXX)
-  trap 'rm -rf "$TMPDIR"' EXIT
-  curl -fL --retry 3 "https://nodejs.org/dist/${NODE_VERSION}/${NODE_TAR}" -o "$TMPDIR/${NODE_TAR}"
-  tar xJf "$TMPDIR/${NODE_TAR}" -C "$TMPDIR"
-  sudo cp -a "$TMPDIR/node-${NODE_VERSION}-linux-${NODE_ARCH}"/* /usr/local/
+  case "$(uname -m)" in
+    x86_64) NODE_ARCH="x64" ;;
+    aarch64) NODE_ARCH="arm64" ;;
+    *) NODE_ARCH="$(uname -m)" ;;
+  esac
+  NODE_TAR="node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz"
+  NODE_TMPDIR=$(mktemp -d /tmp/node-install.XXXXXX)
+  trap 'rm -rf "$NODE_TMPDIR"' EXIT
+  curl -fL --retry 3 "https://nodejs.org/dist/${NODE_VERSION}/${NODE_TAR}" -o "$NODE_TMPDIR/${NODE_TAR}"
+  tar xJf "$NODE_TMPDIR/${NODE_TAR}" -C "$NODE_TMPDIR"
+  sudo cp -a "$NODE_TMPDIR/node-${NODE_VERSION}-linux-${NODE_ARCH}"/* /usr/local/
   echo "[exe-setup] Installed $(node --version) to /usr/local"
 fi
 
