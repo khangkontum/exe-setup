@@ -23,13 +23,12 @@ require_cmds awk curl jq mktemp tar tee
 
 # ── Node.js LTS (nvm is pre-installed, but no node version) ────
 export NVM_DIR="$HOME/.nvm"
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-  # shellcheck disable=SC1091
-  . "$NVM_DIR/nvm.sh"
-else
-  echo "[exe-setup] ERROR: nvm not found at $NVM_DIR/nvm.sh" >&2
-  exit 1
+if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+  echo "[exe-setup] nvm not found, installing..."
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 fi
+# shellcheck disable=SC1091
+. "$NVM_DIR/nvm.sh"
 
 if ! command -v nvm >/dev/null 2>&1; then
   echo "[exe-setup] ERROR: nvm did not load correctly" >&2
