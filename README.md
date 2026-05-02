@@ -2,7 +2,7 @@
 
 First-boot setup for new [exe.dev](https://exe.dev/) VMs.
 
-The exeuntu image already includes most tools. This repo only installs/configures the missing bits: Node.js LTS, pnpm, git defaults, shell helpers, and PATH defaults.
+The exeuntu image already includes most tools. This repo only installs/configures the missing bits: Node.js LTS, pnpm, git defaults, shell helpers, PATH defaults, and on-demand helpers for Rust/Tailscale.
 
 ## Files
 
@@ -41,11 +41,17 @@ source ~/.bashrc
 update-pi [release-tag]
 update-codex [release-tag]
 list-models [DB_PATH]
+install-rust [toolchain]
 install-tailscale
 join-tailscale [AUTH_KEY] [tailscale up args...]
 ```
 
 `DB_PATH` defaults to `/home/exedev/.config/shelley/shelley.db`.
+
+`install-rust` installs/updates Rust via rustup, makes cargo available on PATH,
+sets the default toolchain (default: `stable`), and adds `rustfmt`, `clippy`,
+`rust-src`, and `rust-analyzer`. Set `RUST_COMPONENTS="..."` to override the
+component list.
 
 `join-tailscale` installs Tailscale if needed, prompts for a reusable auth key
 when `AUTH_KEY` is omitted, and joins with the VM hostname. Set

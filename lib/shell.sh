@@ -39,6 +39,10 @@ _exe_github_release_tag() {
   printf '%s\n' "$tag"
 }
 
+export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
+export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
+
+_exe_path_prepend "$CARGO_HOME/bin"
 _exe_path_prepend "$HOME/.local/bin"
 _exe_path_prepend "$HOME/.local/pi"
 
@@ -60,6 +64,73 @@ list-models() {
   fi
 
   sqlite3 -header -column "$db_path" "SELECT model_id, display_name, provider_type, model_name, max_tokens, tags, reasoning_effort FROM models ORDER BY model_id;"
+}
+
+# Install Rust via rustup with common developer components.
+# Usage: install-rust [toolchain]
+#   toolchain defaults to stable.
+#   RUST_COMPONENTS defaults to: rustfmt clippy rust-src rust-analyzer
+install-rust() {
+  local toolchain="${1:-stable}"
+  local components="${RUST_COMPONENTS:-rustfmt clippy rust-src rust-analyzer}"
+  local tmpdir installer current component
+
+  if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    cat <<'EOF'
+Usage: install-rust [toolchain]
+
+Installs/updates rustup, selects the requested toolchain (default: stable), and
+adds common components: rustfmt, clippy, rust-src, rust-analyzer.
+
+Set RUST_COMPONENTS="rustfmt clippy" to override the component list.
+EOF
+    return 0
+  fi
+
+  export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
+  export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
+  _exe_path_prepend "$CARGO_HOME/bin"
+
+  if command -v rustup >/dev/null 2>&1; then
+    current=$(rustup --version 2>/dev/null | head -n 1 || echo "installed")
+    echo "[install-rust] rustup already installed: $current"
+  else
+    _exe_require_cmds curl mktemp sh || return 1
+
+    tmpdir=$(mktemp -d /tmp/install-rust.XXXXXX) || return 1
+    trap 'rm -rf "$tmpdir"; trap - RETURN' RETURN
+    installer="$tmpdir/rustup-init.sh"
+
+    echo "[install-rust] Downloading official rustup installer..."
+    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs -o "$installer" || return 1
+
+    echo "[install-rust] Installing Rust toolchain: $toolchain..."
+    sh "$installer" -y --no-modify-path --default-toolchain "$toolchain" || return 1
+  fi
+
+  hash -r 2>/dev/null || true
+  if ! command -v rustup >/dev/null 2>&1; then
+    echo "[install-rust] ERROR: rustup command was not found after install" >&2
+    return 1
+  fi
+
+  echo "[install-rust] Ensuring toolchain '$toolchain' is installed and default..."
+  rustup toolchain install "$toolchain" || return 1
+  rustup default "$toolchain" || return 1
+
+  if [ -n "$components" ]; then
+    for component in $components; do
+      echo "[install-rust] Adding component: $component"
+      rustup component add "$component" --toolchain "$toolchain" || return 1
+    done
+  fi
+
+  hash -r 2>/dev/null || true
+
+  echo "[install-rust] Ready:"
+  echo "[install-rust]   rustc:  $(rustc --version 2>/dev/null || echo unavailable)"
+  echo "[install-rust]   cargo:  $(cargo --version 2>/dev/null || echo unavailable)"
+  echo "[install-rust]   rustup: $(rustup --version 2>/dev/null | head -n 1 || echo unavailable)"
 }
 
 _exe_tailscale_hostname() {
