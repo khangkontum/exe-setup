@@ -21,23 +21,29 @@ echo "[exe-setup] Log: $LOG_FILE"
 
 require_cmds awk curl jq mktemp tar tee
 
-# ── Node.js LTS (nvm is pre-installed, but no node version) ────
+# ── Node.js LTS ────────────────────────────────────────────────
+# Install Node.js directly from tarball — no nvm overhead (~33MB saved).
+# If nvm is present and already manages node, use it; otherwise install standalone.
 export NVM_DIR="$HOME/.nvm"
-if [ ! -s "$NVM_DIR/nvm.sh" ]; then
-  echo "[exe-setup] nvm not found, installing..."
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-fi
-# shellcheck disable=SC1091
-. "$NVM_DIR/nvm.sh"
-
-if ! command -v nvm >/dev/null 2>&1; then
-  echo "[exe-setup] ERROR: nvm did not load correctly" >&2
-  exit 1
-fi
-
-nvm install --lts
-nvm alias default 'lts/*'
-nvm use default
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  # shellcheck disable=SC1091
+  . "$NVM_DIR/nvm.sh"
+  nvm install --lts
+  nvm alias default 'lts/*'
+  nvm use default
+elif command -v node >/dev/null 2>&1; then
+  echo "[exe-setup] Node.js already installed: $(node --version), skipping"
+else
+  NODE_VERSION=$(curl -fsSL https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false)][0].version')
+  echo "[exe-setup] Installing Node.js $NODE_VERSION (standalone)..."
+  NODE_ARCH=$(uname -m)
+  NODE_TAR="${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz"
+  TMPDIR=$(mktemp -d /tmp/node-install.XXXXXX)
+  trap 'rm -rf "$TMPDIR"' EXIT
+  curl -fL --retry 3 "https://nodejs.org/dist/${NODE_VERSION}/${NODE_TAR}" -o "$TMPDIR/${NODE_TAR}"
+  tar xJf "$TMPDIR/${NODE_TAR}" -C "$TMPDIR"
+  sudo cp -a "$TMPDIR/node-${NODE_VERSION}-linux-${NODE_ARCH}"/* /usr/local/
+  echo "[exe-setup] Installed $(node --version) to /usr/local"
 
 # ── pnpm ────────────────────────────────────────────────────────
 if command -v corepack >/dev/null 2>&1 && corepack enable && corepack prepare pnpm@latest --activate; then
