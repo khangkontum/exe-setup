@@ -46,6 +46,22 @@ export EDITOR="${EDITOR:-vim}"
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
+# List available Shelley models from local SQLite DB.
+# Usage: shelley_models [DB_PATH]
+#   DB_PATH defaults to /home/exedev/.config/shelley/shelley.db
+shelley_models() {
+  local db_path="${1:-/home/exedev/.config/shelley/shelley.db}"
+
+  _exe_require_cmds sqlite3 || return 1
+
+  if [ ! -f "$db_path" ]; then
+    echo "[exe-setup] ERROR: Shelley DB not found at $db_path" >&2
+    return 1
+  fi
+
+  sqlite3 -header -column "$db_path" "SELECT model_id, display_name, provider_type, model_name, max_tokens, tags, reasoning_effort FROM models ORDER BY model_id;"
+}
+
 update-pi() {
   local REPO="badlogic/pi-mono"
   local ASSET="pi-linux-x64.tar.gz"

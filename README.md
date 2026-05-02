@@ -18,6 +18,7 @@ The default exeuntu image already includes most tools used here (`uv`, `nvm`, `c
 - prepends `~/.local/bin` and `~/.local/pi` to `PATH`
 - provides `update-pi [release-tag]`
 - provides `update-codex [release-tag]`
+- provides `shelley_models [DB_PATH]`
 
 ## Files
 
@@ -71,3 +72,22 @@ update-codex <release-tag>
 `update-pi` extracts and verifies the new full Pi app directory before replacing `~/.local/pi`, because Pi is a Bun app and is not a standalone binary.
 
 `update-codex` installs the single static Codex binary to `/usr/local/bin/codex` via `sudo install`.
+
+## Querying models on a VM
+
+The shell helper `shelley_models` runs the Shelley models query against a local DB.
+
+```bash
+shelley_models
+shelley_models /path/to/shelley.db   # optional custom path
+```
+
+Default DB path: `/home/exedev/.config/shelley/shelley.db`
+
+The SQL executed is:
+
+```sql
+SELECT model_id, display_name, provider_type, model_name, max_tokens, tags, reasoning_effort
+FROM models
+ORDER BY model_id;
+```
