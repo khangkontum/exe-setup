@@ -47,9 +47,9 @@ export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
 # List available Shelley models from local SQLite DB.
-# Usage: shelley_models [DB_PATH]
+# Usage: list-models [DB_PATH]
 #   DB_PATH defaults to /home/exedev/.config/shelley/shelley.db
-shelley_models() {
+list-models() {
   local db_path="${1:-/home/exedev/.config/shelley/shelley.db}"
 
   _exe_require_cmds sqlite3 || return 1
