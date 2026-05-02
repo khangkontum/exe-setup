@@ -44,6 +44,7 @@ else
   tar xJf "$TMPDIR/${NODE_TAR}" -C "$TMPDIR"
   sudo cp -a "$TMPDIR/node-${NODE_VERSION}-linux-${NODE_ARCH}"/* /usr/local/
   echo "[exe-setup] Installed $(node --version) to /usr/local"
+fi
 
 # ── pnpm ────────────────────────────────────────────────────────
 if command -v corepack >/dev/null 2>&1 && corepack enable && corepack prepare pnpm@latest --activate; then
