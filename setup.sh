@@ -86,4 +86,4 @@ echo "[exe-setup]   pi:    $(pi --version 2>/dev/null || echo unavailable)"
 echo "[exe-setup]   codex: $(codex --version 2>/dev/null || echo unavailable)"
 
 echo "[exe-setup] Done! Open a new shell or run 'source ~/.bashrc'."
-echo "[exe-setup] Helpers: update-pi [release-tag], update-codex [release-tag], list-models [DB_PATH]"
+echo "[exe-setup] Helpers: update-pi [release-tag], update-codex [release-tag], list-models [DB_PATH], install-tailscale, join-tailscale"

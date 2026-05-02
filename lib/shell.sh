@@ -62,6 +62,137 @@ list-models() {
   sqlite3 -header -column "$db_path" "SELECT model_id, display_name, provider_type, model_name, max_tokens, tags, reasoning_effort FROM models ORDER BY model_id;"
 }
 
+_exe_tailscale_hostname() {
+  local raw
+
+  raw="${TAILSCALE_HOSTNAME:-}"
+  if [ -z "$raw" ]; then
+    raw=$(hostname -s 2>/dev/null || hostname 2>/dev/null || printf 'exe-vm')
+  fi
+
+  raw=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g; s/--*/-/g; s/^-//; s/-$//')
+  [ -n "$raw" ] || raw="exe-vm"
+  printf '%s\n' "$raw"
+}
+
+# Install Tailscale without joining a tailnet.
+# Usage: install-tailscale
+install-tailscale() {
+  local tmpdir installer current
+
+  if command -v tailscale >/dev/null 2>&1; then
+    current=$(tailscale version 2>/dev/null | head -n 1 || echo "installed")
+    echo "[install-tailscale] Tailscale already installed: $current"
+  else
+    _exe_require_cmds curl mktemp sudo sh || return 1
+
+    tmpdir=$(mktemp -d /tmp/install-tailscale.XXXXXX) || return 1
+    trap 'rm -rf "$tmpdir"; trap - RETURN' RETURN
+    installer="$tmpdir/install.sh"
+
+    echo "[install-tailscale] Downloading official Tailscale installer..."
+    curl -fsSL https://tailscale.com/install.sh -o "$installer" || return 1
+
+    echo "[install-tailscale] Installing Tailscale..."
+    sudo sh "$installer" || return 1
+  fi
+
+  if ! command -v tailscale >/dev/null 2>&1; then
+    echo "[install-tailscale] ERROR: tailscale command was not found after install" >&2
+    return 1
+  fi
+
+  if command -v systemctl >/dev/null 2>&1; then
+    echo "[install-tailscale] Enabling and starting tailscaled..."
+    sudo systemctl enable --now tailscaled || return 1
+  fi
+
+  echo "[install-tailscale] Ready: $(tailscale version 2>/dev/null | head -n 1 || echo installed)"
+}
+
+# Join this VM to Tailscale using a reusable auth key.
+# Usage: join-tailscale [AUTH_KEY] [tailscale up args...]
+# Recommended: run join-tailscale with no AUTH_KEY and paste the key at the hidden prompt.
+# Set TAILSCALE_HOSTNAME to override the default hostname.
+join-tailscale() {
+  local auth_key=""
+  local hostname=""
+  local xtrace_was_on=0
+  local status=0
+
+  if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    cat <<'EOF'
+Usage: join-tailscale [AUTH_KEY] [tailscale up args...]
+
+Installs Tailscale if needed, prompts for a reusable auth key when AUTH_KEY is
+omitted, then runs tailscale up with --auth-key and --hostname.
+
+Examples:
+  join-tailscale
+  TAILSCALE_HOSTNAME=my-vm join-tailscale
+  join-tailscale --ssh --accept-routes
+EOF
+    return 0
+  fi
+
+  if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+    auth_key="$1"
+    shift
+    echo "[join-tailscale] WARNING: passing auth keys as arguments may leave them in shell history; prefer the hidden prompt." >&2
+  fi
+
+  install-tailscale || return 1
+  _exe_require_cmds sudo || return 1
+
+  if sudo tailscale status --self >/dev/null 2>&1; then
+    echo "[join-tailscale] Already joined to Tailscale:"
+    sudo tailscale status --self
+    return 0
+  fi
+
+  if [ -z "$auth_key" ]; then
+    printf '[join-tailscale] Paste reusable Tailscale auth key (input hidden): ' >&2
+    if [ -t 0 ]; then
+      IFS= read -r -s auth_key
+      printf '\n' >&2
+    else
+      IFS= read -r auth_key
+    fi
+  fi
+
+  if [ -z "$auth_key" ]; then
+    echo "[join-tailscale] ERROR: empty auth key" >&2
+    return 1
+  fi
+
+  case "$auth_key" in
+    tskey-auth-*|tskey-client-*) ;;
+    *) echo "[join-tailscale] WARNING: auth key does not look like a Tailscale key" >&2 ;;
+  esac
+
+  hostname=$(_exe_tailscale_hostname)
+  echo "[join-tailscale] Joining tailnet as $hostname..."
+
+  case "$-" in
+    *x*) xtrace_was_on=1; set +x ;;
+  esac
+
+  if sudo tailscale up --auth-key="$auth_key" --hostname="$hostname" "$@"; then
+    status=0
+  else
+    status=$?
+  fi
+
+  auth_key=""
+  unset auth_key
+  [ "$xtrace_was_on" -eq 1 ] && set -x
+
+  [ "$status" -eq 0 ] || return "$status"
+
+  echo "[join-tailscale] Joined. Self:"
+  sudo tailscale status --self
+}
+
 update-pi() {
   local REPO="badlogic/pi-mono"
   local ASSET="pi-linux-x64.tar.gz"

@@ -41,6 +41,12 @@ source ~/.bashrc
 update-pi [release-tag]
 update-codex [release-tag]
 list-models [DB_PATH]
+install-tailscale
+join-tailscale [AUTH_KEY] [tailscale up args...]
 ```
 
 `DB_PATH` defaults to `/home/exedev/.config/shelley/shelley.db`.
+
+`join-tailscale` installs Tailscale if needed, prompts for a reusable auth key
+when `AUTH_KEY` is omitted, and joins with the VM hostname. Set
+`TAILSCALE_HOSTNAME=my-name` to override the hostname.
