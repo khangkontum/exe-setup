@@ -19,7 +19,7 @@ echo "[exe-setup] Starting..."
 echo "[exe-setup] Source: $SCRIPT_DIR"
 echo "[exe-setup] Log: $LOG_FILE"
 
-require_cmds awk curl jq mktemp tar tee
+require_cmds awk curl git jq mktemp tar tee
 
 # ── Node.js LTS ────────────────────────────────────────────────
 # Install Node.js directly from tarball — no nvm overhead (~33MB saved).
@@ -57,6 +57,16 @@ else
   echo "[exe-setup] WARNING: Corepack unavailable or failed; falling back to npm install -g pnpm"
   npm install -g pnpm
 fi
+
+# ── Git global config and hooks ───────────────────────────────
+git config --global user.email "git@nhkhang.com"
+git config --global user.name "Hoang-Khang Nguyen"
+mkdir -p "$HOME/.config/git/hooks"
+cp "$SCRIPT_DIR/lib/git-hooks/commit-msg" "$HOME/.config/git/hooks/commit-msg"
+chmod +x "$HOME/.config/git/hooks/commit-msg"
+git config --global core.hooksPath "$HOME/.config/git/hooks"
+echo "[exe-setup] git config: user.email=git@nhkhang.com, user.name=Hoang-Khang Nguyen"
+echo "[exe-setup] git hooks: core.hooksPath=$HOME/.config/git/hooks (strips Co-Authored-by trailers)"
 
 # ── Shell helpers and defaults ─────────────────────────────────
 mkdir -p "$HOME/.config/exe-setup"

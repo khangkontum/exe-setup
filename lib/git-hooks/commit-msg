@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+msg_file=${1:?usage: commit-msg <path-to-commit-message>}
+
+git_dir=$(git rev-parse --absolute-git-dir 2>/dev/null || true)
+repo_hook="${git_dir:+$git_dir/hooks/commit-msg}"
+if [ -n "$repo_hook" ] && [ -x "$repo_hook" ]; then
+  self_path=$(readlink -f "$0" 2>/dev/null || printf '%s\n' "$0")
+  repo_hook_path=$(readlink -f "$repo_hook" 2>/dev/null || printf '%s\n' "$repo_hook")
+  if [ "$repo_hook_path" != "$self_path" ]; then
+    "$repo_hook" "$@"
+  fi
+fi
+
+if grep -Eiq '^[[:space:]]*co-authored-by:' "$msg_file"; then
+  tmp_file=$(mktemp)
+  trap 'rm -f "$tmp_file"' EXIT
+  awk '
+    /^[[:space:]]*[Cc][Oo]-[Aa][Uu][Tt][Hh][Oo][Rr][Ee][Dd]-[Bb][Yy]:/ { next }
+    { lines[++n] = $0 }
+    END {
+      while (n > 0 && lines[n] == "") n--
+      for (i = 1; i <= n; i++) print lines[i]
+    }
+  ' "$msg_file" > "$tmp_file"
+  mv "$tmp_file" "$msg_file"
+  trap - EXIT
+  echo "[git hook] Removed Co-Authored-by trailer(s) from commit message." >&2
+fi

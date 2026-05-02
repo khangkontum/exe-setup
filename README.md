@@ -2,7 +2,7 @@
 
 First-boot setup for new [exe.dev](https://exe.dev/) VMs.
 
-The exeuntu image already includes most tools. This repo only installs/configures the missing bits: Node.js LTS, pnpm, shell helpers, and PATH defaults.
+The exeuntu image already includes most tools. This repo only installs/configures the missing bits: Node.js LTS, pnpm, git defaults, shell helpers, and PATH defaults.
 
 ## Files
 
@@ -25,6 +25,15 @@ cd exe-setup
 bash setup.sh
 source ~/.bashrc
 ```
+
+## Git defaults
+
+`setup.sh` configures:
+
+- global `user.email = git@nhkhang.com`
+- global `user.name = Hoang-Khang Nguyen`
+- global `core.hooksPath = ~/.config/git/hooks`
+- a `commit-msg` hook that strips `Co-Authored-by:` trailers
 
 ## Shell helpers
 
