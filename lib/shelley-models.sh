@@ -89,27 +89,37 @@ restart_shelley_after_setup_changes() {
 
 
 
-resolve_sub_agent_model_id() {
+resolve_shelley_model_id_property() {
   local models_file="$1"
+  local property_name="$2"
+  local label="$3"
   local display_name model_list model_id
 
-  display_name=$(jq -r '.subAgentModel // ""' "$models_file") || return 1
+  display_name=$(jq -r --arg key "$property_name" '.[$key] // ""' "$models_file") || return 1
   if [ -z "$display_name" ]; then
     return 0
   fi
 
-  echo "[exe-setup] Resolving Shelley sub-agent model: $display_name" >&2
+  echo "[exe-setup] Resolving Shelley $label model: $display_name" >&2
   wait_for_shelley || return 1
 
   model_list=$(shelley_api GET /api/models) || return 1
   model_id=$(printf '%s' "$model_list" | jq -r --arg name "$display_name" '.[] | select(.display_name == $name) | .id' | head -n 1)
 
   if [ -z "$model_id" ]; then
-    echo "[exe-setup] ERROR: subAgentModel '$display_name' was not found in Shelley model list" >&2
+    echo "[exe-setup] ERROR: $property_name '$display_name' was not found in Shelley model list" >&2
     return 1
   fi
 
   printf '%s\n' "$model_id"
+}
+
+resolve_main_agent_model_id() {
+  resolve_shelley_model_id_property "$1" mainAgent "main-agent"
+}
+
+resolve_sub_agent_model_id() {
+  resolve_shelley_model_id_property "$1" subAgentModel "sub-agent"
 }
 
 strip_exact_file_block() {
@@ -176,6 +186,7 @@ trim_trailing_blank_lines() {
 apply_shelley_agents_append() {
   local append_file="$1"
   local sub_agents_model="${2:-}"
+  local main_agent_model="${3:-}"
   local agents_file="${SHELLEY_AGENTS_FILE:-$HOME/.config/shelley/AGENTS.md}"
   local start_marker="<!-- exe-setup additions >>> -->"
   local end_marker="<!-- <<< exe-setup additions -->"
@@ -194,7 +205,14 @@ apply_shelley_agents_append() {
   rendered_file=$(mktemp /tmp/exe-agents-rendered.XXXXXX)
   stripped_file=$(mktemp /tmp/exe-agents-stripped.XXXXXX)
 
-  awk -v value="$sub_agents_model" '{ gsub(/{{subAgentsModel}}/, value); print }' "$append_file" > "$rendered_file"
+  awk \
+    -v sub_agents_model="$sub_agents_model" \
+    -v main_agent_model="$main_agent_model" \
+    '{
+      gsub(/{{subAgentsModel}}/, sub_agents_model)
+      gsub(/{{mainAgent}}/, main_agent_model)
+      print
+    }' "$append_file" > "$rendered_file"
 
   # Drop the old visible marker block from earlier exe-setup versions.
   awk -v start="$start_marker" -v end="$end_marker" '

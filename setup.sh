@@ -107,10 +107,13 @@ install-mise
 install_codex_config
 
 # ── Shelley custom models ──────────────────────────────────────
+MAIN_AGENT_MODEL=""
 SUB_AGENTS_MODEL=""
 if [ -f "$HOME/.config/exe-setup/models.json" ]; then
   sync_shelley_models "$HOME/.config/exe-setup/models.json" || \
     echo "[exe-setup] WARNING: Shelley custom model sync failed; edit ~/.config/exe-setup/models.json and rerun setup.sh later"
+  MAIN_AGENT_MODEL=$(resolve_main_agent_model_id "$HOME/.config/exe-setup/models.json") || \
+    echo "[exe-setup] WARNING: Shelley main-agent model resolution failed"
   SUB_AGENTS_MODEL=$(resolve_sub_agent_model_id "$HOME/.config/exe-setup/models.json") || \
     echo "[exe-setup] WARNING: Shelley sub-agent model resolution failed"
 fi
@@ -121,7 +124,7 @@ sync_shelley_notifications || \
 
 # ── Shelley AGENTS instructions ────────────────────────────────
 if [ -f "$HOME/.config/exe-setup/AGENTS.append.md" ]; then
-  apply_shelley_agents_append "$HOME/.config/exe-setup/AGENTS.append.md" "$SUB_AGENTS_MODEL" || \
+  apply_shelley_agents_append "$HOME/.config/exe-setup/AGENTS.append.md" "$SUB_AGENTS_MODEL" "$MAIN_AGENT_MODEL" || \
     echo "[exe-setup] WARNING: Shelley AGENTS instruction update failed"
 fi
 

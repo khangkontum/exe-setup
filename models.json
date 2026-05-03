@@ -1,4 +1,5 @@
 {
+  "mainAgent": "GPT 5.5-high",
   "subAgentModel": "GPT 5.5-medium",
   "models": [
     {

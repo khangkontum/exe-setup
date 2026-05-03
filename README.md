@@ -63,8 +63,10 @@ wire_api = "responses"
 ```
 
 The shell defaults `OPENAI_API_KEY` to `dummy` unless you provide a real value.
-Use `api_key_env` in `models.json`; rerun `setup.sh` after changing local
-models, Codex environment overrides, or `AGENTS.append.md`.
+Use `mainAgent` and `subAgentModel` in `models.json` to choose the Shelley model
+IDs rendered into `AGENTS.append.md`. Use `api_key_env` in `models.json`; rerun
+`setup.sh` after changing local models, Codex environment overrides, or
+`AGENTS.append.md`.
 
 Shelley server-side finish notifications are configured through ntfy by default:
 
