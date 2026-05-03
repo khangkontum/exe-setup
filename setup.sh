@@ -16,6 +16,8 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 . "$SCRIPT_DIR/lib/common.sh"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/lib/shelley-models.sh"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/lib/shelley-notifications.sh"
 
 echo "[exe-setup] Starting..."
 echo "[exe-setup] Source: $SCRIPT_DIR"
@@ -96,6 +98,10 @@ if [ -f "$HOME/.config/exe-setup/models.json" ]; then
   SUB_AGENTS_MODEL=$(resolve_sub_agent_model_id "$HOME/.config/exe-setup/models.json") || \
     echo "[exe-setup] WARNING: Shelley sub-agent model resolution failed"
 fi
+
+# ── Shelley server notifications ─────────────────────────────
+sync_shelley_notifications || \
+  echo "[exe-setup] WARNING: Shelley notification setup failed; check ntfy settings and rerun setup.sh later"
 
 # ── Shelley AGENTS instructions ────────────────────────────────
 if [ -f "$HOME/.config/exe-setup/AGENTS.append.md" ]; then

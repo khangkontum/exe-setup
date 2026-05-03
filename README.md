@@ -3,8 +3,8 @@
 Tiny first-boot setup for new [exe.dev](https://exe.dev/) VMs.
 
 It only fills gaps in the exeuntu image: Node.js LTS, pnpm, git defaults,
-Codex Plexus defaults, PATH/shell helpers, Shelley models, and Shelley AGENTS
-additions.
+Codex Plexus defaults, PATH/shell helpers, Shelley models, Shelley ntfy
+notifications, and Shelley AGENTS additions.
 
 ## Use
 
@@ -64,3 +64,14 @@ wire_api = "responses"
 The shell defaults `OPENAI_API_KEY` to `dummy` unless you provide a real value.
 Use `api_key_env` in `models.json`; rerun `setup.sh` after changing local
 models, Codex environment overrides, or `AGENTS.append.md`.
+
+Shelley server-side finish notifications are configured through ntfy by default:
+
+```bash
+SHELLEY_NTFY_SERVER=https://ntfy.0xee.de
+SHELLEY_NTFY_TOPIC=shelley
+SHELLEY_NTFY_TOKEN=dummy
+```
+
+Override those environment variables before running `setup.sh` if you need a
+different hosted ntfy instance, topic, or token.
