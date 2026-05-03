@@ -3,7 +3,8 @@
 Tiny first-boot setup for new [exe.dev](https://exe.dev/) VMs.
 
 It only fills gaps in the exeuntu image: Node.js LTS, pnpm, git defaults,
-PATH/shell helpers, Shelley models, and Shelley AGENTS additions.
+Codex Plexus defaults, PATH/shell helpers, Shelley models, and Shelley AGENTS
+additions.
 
 ## Use
 
@@ -41,5 +42,20 @@ install-tailscale
 join-tailscale [AUTH_KEY] [tailscale up args...]
 ```
 
+Codex is configured in `~/.codex/config.toml` to use the Plexus OpenAI-compatible
+endpoint by default:
+
+```toml
+model = "gpt-5.5"
+model_provider = "proxy"
+
+[model_providers.proxy]
+name = "plexus"
+base_url = "https://plexus.int.exe.xyz/v1"
+env_key = "OPENAI_API_KEY"
+wire_api = "responses"
+```
+
+The shell defaults `OPENAI_API_KEY` to `dummy` unless you provide a real value.
 Use `api_key_env` in `models.json`; rerun `setup.sh` after changing local
-models or `AGENTS.append.md`.
+models, Codex environment overrides, or `AGENTS.append.md`.

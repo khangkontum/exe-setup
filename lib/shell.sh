@@ -47,6 +47,9 @@ _exe_path_prepend "$HOME/.local/bin"
 _exe_path_prepend "$HOME/.local/pi"
 
 export EDITOR="${EDITOR:-vim}"
+# Plexus accepts a placeholder OpenAI-compatible bearer token; keep this
+# overrideable so real OpenAI keys or other proxies can still be used.
+export OPENAI_API_KEY="${OPENAI_API_KEY:-dummy}"
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
