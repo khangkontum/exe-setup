@@ -85,6 +85,9 @@ upsert_bashrc_source
 # shellcheck disable=SC1091
 . "$HOME/.config/exe-setup/shell.sh"
 
+# ── Codex defaults ──────────────────────────────────────────────
+install_codex_config
+
 # ── Shelley custom models ──────────────────────────────────────
 SUB_AGENTS_MODEL=""
 if [ -f "$HOME/.config/exe-setup/models.json" ]; then
