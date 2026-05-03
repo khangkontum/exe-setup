@@ -38,9 +38,14 @@ update-pi [release-tag]
 update-codex [release-tag]
 list-models [DB_PATH]
 install-rust [toolchain]
+install-mise [version]
 install-tailscale
 join-tailscale [AUTH_KEY] [tailscale up args...]
 ```
+
+`install-mise` installs/updates mise using the official installer, puts the
+binary in `~/.local/bin/mise` by default, and `~/.config/exe-setup/shell.sh`
+activates mise for new bash shells.
 
 Codex is configured in `~/.codex/config.toml` to use the Plexus OpenAI-compatible
 endpoint by default:
