@@ -41,9 +41,11 @@ _exe_github_release_tag() {
 
 export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
 export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
+export MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-$HOME/.local/bin/mise}"
 
 _exe_path_prepend "$CARGO_HOME/bin"
 _exe_path_prepend "$HOME/.local/bin"
+_exe_path_prepend "$HOME/.local/share/mise/shims"
 _exe_path_prepend "$HOME/.local/pi"
 
 export EDITOR="${EDITOR:-vim}"
@@ -52,6 +54,12 @@ export EDITOR="${EDITOR:-vim}"
 export OPENAI_API_KEY="${OPENAI_API_KEY:-dummy}"
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+# Activate mise in interactive bash shells when it is installed. The shim path
+# above keeps non-interactive shells able to find mise-managed tools too.
+if [ -n "${BASH_VERSION:-}" ] && command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate bash)"
+fi
 
 # List available Shelley models from local SQLite DB.
 # Usage: list-models [DB_PATH]
@@ -67,6 +75,72 @@ list-models() {
   fi
 
   sqlite3 -header -column "$db_path" "SELECT model_id, display_name, provider_type, model_name, max_tokens, tags, reasoning_effort FROM models ORDER BY model_id;"
+}
+
+
+# Install mise and activate it for this shell.
+# Usage: install-mise [version]
+#   version defaults to latest. Accepts values like v2025.12.0.
+#   MISE_INSTALL_PATH defaults to ~/.local/bin/mise.
+install-mise() {
+  local version="${1:-}"
+  local tmpdir installer current
+
+  if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    cat <<'EOF'
+Usage: install-mise [version]
+
+Installs/updates mise using the official mise installer, defaults the binary to
+~/.local/bin/mise, and activates mise in the current bash shell.
+
+Examples:
+  install-mise
+  install-mise v2025.12.0
+
+Set MISE_INSTALL_PATH=/usr/local/bin/mise to install somewhere else.
+EOF
+    return 0
+  fi
+
+  export MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-$HOME/.local/bin/mise}"
+  _exe_path_prepend "$(dirname "$MISE_INSTALL_PATH")"
+  _exe_path_prepend "$HOME/.local/share/mise/shims"
+
+  _exe_require_cmds curl mktemp sh dirname || return 1
+  mkdir -p "$(dirname "$MISE_INSTALL_PATH")"
+
+  if command -v mise >/dev/null 2>&1; then
+    current=$(mise --version 2>/dev/null || echo "installed")
+    echo "[install-mise] mise already installed: $current"
+  fi
+
+  tmpdir=$(mktemp -d /tmp/install-mise.XXXXXX) || return 1
+  trap 'rm -rf "$tmpdir"; trap - RETURN' RETURN
+  installer="$tmpdir/mise-install.sh"
+
+  echo "[install-mise] Downloading official mise installer..."
+  curl --proto '=https' --tlsv1.2 -fsSL https://mise.run -o "$installer" || return 1
+
+  if [ -n "$version" ]; then
+    echo "[install-mise] Installing mise $version to $MISE_INSTALL_PATH..."
+    MISE_VERSION="$version" sh "$installer" || return 1
+  else
+    echo "[install-mise] Installing latest mise to $MISE_INSTALL_PATH..."
+    sh "$installer" || return 1
+  fi
+
+  hash -r 2>/dev/null || true
+  if ! command -v mise >/dev/null 2>&1; then
+    echo "[install-mise] ERROR: mise command was not found after install" >&2
+    return 1
+  fi
+
+  if [ -n "${BASH_VERSION:-}" ]; then
+    eval "$(mise activate bash)"
+  fi
+
+  echo "[install-mise] Ready: $(mise --version 2>/dev/null || echo installed)"
+  echo "[install-mise] Activation is managed by ~/.config/exe-setup/shell.sh for bash. Open a new bash shell or run: eval \"\$(mise activate bash)\""
 }
 
 
