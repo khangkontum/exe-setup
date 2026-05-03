@@ -1,4 +1,5 @@
 {
+  "subAgentModel": "GPT 5.4-medium",
   "models": [
     {
       "display_name": "GPT 5.4-medium",
@@ -80,6 +81,5 @@
       "tags": "",
       "reasoning_effort": ""
     }
-  ],
-  "subAgentModel": "GPT 5.4-medium"
+  ]
 }
