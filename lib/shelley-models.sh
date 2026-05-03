@@ -112,40 +112,121 @@ resolve_sub_agent_model_id() {
   printf '%s\n' "$model_id"
 }
 
+strip_exact_file_block() {
+  local source_file="$1"
+  local block_file="$2"
+  local output_file="$3"
+
+  if [ ! -s "$block_file" ]; then
+    cp "$source_file" "$output_file"
+    return 0
+  fi
+
+  awk '
+    FNR == NR { n++; block[n] = $0; next }
+    { lines[++m] = $0 }
+    END {
+      i = 1
+      while (i <= m) {
+        start = i
+        if (lines[i] == "" && i < m) {
+          start = i + 1
+        }
+
+        matched = (n > 0 && start + n - 1 <= m)
+        if (matched) {
+          for (j = 1; j <= n; j++) {
+            if (lines[start + j - 1] != block[j]) {
+              matched = 0
+              break
+            }
+          }
+        }
+
+        if (matched) {
+          i = start + n
+          continue
+        }
+
+        print lines[i]
+        i++
+      }
+    }
+  ' "$block_file" "$source_file" > "$output_file"
+}
+
+trim_trailing_blank_lines() {
+  local source_file="$1"
+  local output_file="$2"
+
+  awk '
+    { lines[NR] = $0 }
+    END {
+      end = NR
+      while (end > 0 && lines[end] == "") {
+        end--
+      }
+      for (i = 1; i <= end; i++) {
+        print lines[i]
+      }
+    }
+  ' "$source_file" > "$output_file"
+}
+
 apply_shelley_agents_append() {
   local append_file="$1"
   local sub_agents_model="${2:-}"
   local agents_file="${SHELLEY_AGENTS_FILE:-$HOME/.config/shelley/AGENTS.md}"
   local start_marker="<!-- exe-setup additions >>> -->"
   local end_marker="<!-- <<< exe-setup additions -->"
-  local tmpfile rendered_file
+  local previous_rendered="$HOME/.config/exe-setup/AGENTS.rendered.md"
+  local tmpfile rendered_file stripped_file
 
   if [ ! -f "$append_file" ]; then
     echo "[exe-setup] Shelley AGENTS append file not found; skipping: $append_file"
     return 0
   fi
 
-  mkdir -p "$(dirname "$agents_file")"
+  mkdir -p "$(dirname "$agents_file")" "$(dirname "$previous_rendered")"
   touch "$agents_file"
 
   tmpfile=$(mktemp /tmp/exe-agents.XXXXXX)
   rendered_file=$(mktemp /tmp/exe-agents-rendered.XXXXXX)
+  stripped_file=$(mktemp /tmp/exe-agents-stripped.XXXXXX)
 
   awk -v value="$sub_agents_model" '{ gsub(/{{subAgentsModel}}/, value); print }' "$append_file" > "$rendered_file"
 
+  # Drop the old visible marker block from earlier exe-setup versions.
   awk -v start="$start_marker" -v end="$end_marker" '
     $0 == start { skip = 1; next }
     $0 == end { skip = 0; next }
     !skip { print }
   ' "$agents_file" > "$tmpfile"
 
+  if [ -s "$previous_rendered" ]; then
+    strip_exact_file_block "$tmpfile" "$previous_rendered" "$stripped_file"
+    mv "$stripped_file" "$tmpfile"
+    stripped_file=$(mktemp /tmp/exe-agents-stripped.XXXXXX)
+  fi
+
+  strip_exact_file_block "$tmpfile" "$rendered_file" "$stripped_file"
+  mv "$stripped_file" "$tmpfile"
+  stripped_file=$(mktemp /tmp/exe-agents-stripped.XXXXXX)
+
+  trim_trailing_blank_lines "$tmpfile" "$stripped_file"
+  mv "$stripped_file" "$tmpfile"
+
   {
-    cat "$tmpfile"
-    printf '\n%s\n' "$start_marker"
+    if [ -s "$tmpfile" ]; then
+      cat "$tmpfile"
+      printf '\n'
+    fi
     cat "$rendered_file"
-    printf '\n%s\n' "$end_marker"
+    printf '\n'
   } > "$agents_file"
-  rm -f "$tmpfile" "$rendered_file"
+
+  cp "$rendered_file" "$previous_rendered"
+  rm -f "$tmpfile" "$rendered_file" "$stripped_file"
 
   echo "[exe-setup] Updated Shelley AGENTS instructions: $agents_file"
 }
