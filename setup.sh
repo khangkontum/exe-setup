@@ -109,6 +109,10 @@ if [ -f "$HOME/.config/exe-setup/AGENTS.append.md" ]; then
     echo "[exe-setup] WARNING: Shelley AGENTS instruction update failed"
 fi
 
+# ── Shelley restart ────────────────────────────────────────────
+restart_shelley_after_setup_changes || \
+  echo "[exe-setup] WARNING: Shelley restart failed; setup changes may require a manual restart"
+
 # ── Summary ────────────────────────────────────────────────────
 echo "[exe-setup] Versions:"
 echo "[exe-setup]   node:  $(node --version 2>/dev/null || echo unavailable)"
