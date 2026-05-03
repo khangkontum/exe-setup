@@ -2,7 +2,7 @@
 
 First-boot setup for new [exe.dev](https://exe.dev/) VMs.
 
-The exeuntu image already includes most tools. This repo only installs/configures the missing bits: Node.js LTS, pnpm, git defaults, shell helpers, PATH defaults, and on-demand helpers for Rust/Tailscale.
+The exeuntu image already includes most tools. This repo only installs/configures the missing bits: Node.js LTS, pnpm, git defaults, shell helpers, PATH defaults, Shelley custom models, and on-demand helpers for Rust/Tailscale.
 
 ## Files
 
@@ -10,6 +10,8 @@ The exeuntu image already includes most tools. This repo only installs/configure
 - `setup.sh` — main installer
 - `lib/common.sh` — setup helpers
 - `lib/shell.sh` — installed shell helpers
+- `lib/shelley-models.sh` — startup-only Shelley custom model sync
+- `models.json` — editable Shelley custom model list, copied to `~/.config/exe-setup/models.json`
 
 ## Set as exe.dev default
 
@@ -25,6 +27,48 @@ cd exe-setup
 bash setup.sh
 source ~/.bashrc
 ```
+
+
+## Shelley custom models
+
+`setup.sh` copies `models.json` to `~/.config/exe-setup/models.json` when the
+local file does not exist yet, then tries to sync it into Shelley via the local
+custom-models API. If any models are created or updated, setup restarts
+`shelley.service` so Shelley loads the changes. The file is safe to keep empty
+by default:
+
+```json
+{
+  "models": []
+}
+```
+
+Add models like this:
+
+```json
+{
+  "models": [
+    {
+      "display_name": "GPT 5.1 Codex",
+      "provider_type": "openai-responses",
+      "endpoint": "https://api.openai.com/v1/responses",
+      "api_key_env": "OPENAI_API_KEY",
+      "model_name": "gpt-5.1-codex",
+      "max_tokens": 200000,
+      "tags": "",
+      "reasoning_effort": "medium"
+    }
+  ]
+}
+```
+
+Use `api_key_env` to read the key from the environment, or `api_key` to store a
+key directly in the local file. Existing models are matched by `model_id` when
+present, otherwise by `display_name`. Re-run `setup.sh` after editing the local
+file to sync changes.
+
+Supported `provider_type` values are `anthropic`, `openai`,
+`openai-responses`, and `gemini`.
 
 ## Git defaults
 

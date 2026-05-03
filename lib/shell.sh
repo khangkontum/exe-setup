@@ -66,6 +66,7 @@ list-models() {
   sqlite3 -header -column "$db_path" "SELECT model_id, display_name, provider_type, model_name, max_tokens, tags, reasoning_effort FROM models ORDER BY model_id;"
 }
 
+
 # Install Rust via rustup with common developer components.
 # Usage: install-rust [toolchain]
 #   toolchain defaults to stable.

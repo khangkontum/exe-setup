@@ -14,6 +14,8 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/lib/common.sh"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/lib/shelley-models.sh"
 
 echo "[exe-setup] Starting..."
 echo "[exe-setup] Source: $SCRIPT_DIR"
@@ -71,11 +73,20 @@ echo "[exe-setup] git hooks: core.hooksPath=$HOME/.config/git/hooks (strips Co-A
 # ── Shell helpers and defaults ─────────────────────────────────
 mkdir -p "$HOME/.config/exe-setup"
 cp "$SCRIPT_DIR/lib/shell.sh" "$HOME/.config/exe-setup/shell.sh"
+if [ -f "$SCRIPT_DIR/models.json" ] && [ ! -f "$HOME/.config/exe-setup/models.json" ]; then
+  cp "$SCRIPT_DIR/models.json" "$HOME/.config/exe-setup/models.json"
+fi
 upsert_bashrc_source
 
 # Load the freshly written shell defaults for this setup session too.
 # shellcheck disable=SC1091
 . "$HOME/.config/exe-setup/shell.sh"
+
+# ── Shelley custom models ──────────────────────────────────────
+if [ -f "$HOME/.config/exe-setup/models.json" ]; then
+  sync_shelley_models "$HOME/.config/exe-setup/models.json" || \
+    echo "[exe-setup] WARNING: Shelley custom model sync failed; edit ~/.config/exe-setup/models.json and rerun setup.sh later"
+fi
 
 # ── Summary ────────────────────────────────────────────────────
 echo "[exe-setup] Versions:"
