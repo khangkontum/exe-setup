@@ -52,6 +52,8 @@ install_codex_config() {
   local base_url="${CODEX_PROXY_BASE_URL:-https://plexus.int.exe.xyz/v1}"
   local env_key="${CODEX_PROXY_ENV_KEY:-OPENAI_API_KEY}"
   local wire_api="${CODEX_PROXY_WIRE_API:-responses}"
+  local service_tier="${CODEX_SERVICE_TIER:-fast}"
+  local fast_mode="${CODEX_FAST_MODE:-true}"
 
   mkdir -p "$config_dir"
 
@@ -60,6 +62,10 @@ install_codex_config() {
 # The proxy expects an OpenAI-compatible bearer token from \$${env_key}.
 model = $(_toml_quote "$model")
 model_provider = $(_toml_quote "$provider")
+service_tier = $(_toml_quote "$service_tier")
+
+[features]
+fast_mode = $fast_mode
 
 [model_providers.$provider]
 name = $(_toml_quote "$provider_name")
@@ -69,5 +75,5 @@ wire_api = $(_toml_quote "$wire_api")
 EOF
 
   chmod 600 "$config_file"
-  echo "[exe-setup] codex config: $config_file (model=$model, provider=$provider_name, base_url=$base_url, wire_api=$wire_api)"
+  echo "[exe-setup] codex config: $config_file (model=$model, provider=$provider_name, base_url=$base_url, wire_api=$wire_api, service_tier=$service_tier, fast_mode=$fast_mode)"
 }

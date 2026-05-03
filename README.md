@@ -48,6 +48,10 @@ endpoint by default:
 ```toml
 model = "gpt-5.5"
 model_provider = "proxy"
+service_tier = "fast"
+
+[features]
+fast_mode = true
 
 [model_providers.proxy]
 name = "plexus"
@@ -57,5 +61,6 @@ wire_api = "responses"
 ```
 
 The shell defaults `OPENAI_API_KEY` to `dummy` unless you provide a real value.
-Use `api_key_env` in `models.json`; rerun `setup.sh` after changing local
-models, Codex environment overrides, or `AGENTS.append.md`.
+Codex defaults to the same fast mode enabled by `/fast on`. Use `api_key_env`
+in `models.json`; rerun `setup.sh` after changing local models, Codex
+environment overrides, or `AGENTS.append.md`.
