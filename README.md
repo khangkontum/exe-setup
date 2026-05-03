@@ -2,9 +2,9 @@
 
 Tiny first-boot setup for new [exe.dev](https://exe.dev/) VMs.
 
-It only fills gaps in the exeuntu image: Node.js LTS, pnpm, git defaults,
-Codex Plexus defaults, PATH/shell helpers, Shelley models, Shelley ntfy
-notifications, and Shelley AGENTS additions.
+It only fills gaps in the exeuntu image: Node.js LTS, pnpm, mise, git
+defaults, Codex Plexus defaults, PATH/shell helpers, Shelley models, Shelley
+ntfy notifications, and Shelley AGENTS additions.
 
 ## Use
 
@@ -43,9 +43,10 @@ install-tailscale
 join-tailscale [AUTH_KEY] [tailscale up args...]
 ```
 
-`install-mise` installs/updates mise using the official installer, puts the
-binary in `~/.local/bin/mise` by default, and `~/.config/exe-setup/shell.sh`
-activates mise for new bash shells.
+Setup installs mise using the official installer and puts the binary in
+`~/.local/bin/mise` by default. `install-mise` remains available to update or
+pin mise later, and `~/.config/exe-setup/shell.sh` activates mise for new bash
+shells.
 
 Codex is configured in `~/.codex/config.toml` to use the Plexus OpenAI-compatible
 endpoint by default:
