@@ -68,7 +68,7 @@ models, Codex environment overrides, or `AGENTS.append.md`.
 Shelley server-side finish notifications are configured through ntfy by default:
 
 ```bash
-SHELLEY_NTFY_SERVER=https://ntfy.0xee.de
+SHELLEY_NTFY_SERVER=https://ntfy.int.exe.xyz/
 SHELLEY_NTFY_TOPIC=shelley
 SHELLEY_NTFY_TOKEN=dummy
 ```

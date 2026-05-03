@@ -3,7 +3,7 @@
 
 sync_shelley_notifications() {
   local display_name="${SHELLEY_NTFY_DISPLAY_NAME:-ntfy: shelley}"
-  local server="${SHELLEY_NTFY_SERVER:-https://ntfy.0xee.de}"
+  local server="${SHELLEY_NTFY_SERVER:-https://ntfy.int.exe.xyz/}"
   local topic="${SHELLEY_NTFY_TOPIC:-shelley}"
   local token="${SHELLEY_NTFY_TOKEN:-dummy}"
   local done_priority="${SHELLEY_NTFY_DONE_PRIORITY:-default}"
