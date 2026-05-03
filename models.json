@@ -1,14 +1,85 @@
 {
   "models": [
     {
-      "display_name": "GPT 5.1 Codex",
+      "display_name": "GPT 5.4-medium",
       "provider_type": "openai-responses",
-      "endpoint": "https://api.openai.com/v1/responses",
-      "api_key_env": "OPENAI_API_KEY",
-      "model_name": "gpt-5.1-codex",
-      "max_tokens": 200000,
+      "endpoint": "https://plexus.int.exe.xyz/v1",
+      "api_key_env": "dummy",
+      "model_name": "gpt-5.4",
+      "max_tokens": 270000,
       "tags": "",
       "reasoning_effort": "medium"
+    },
+    {
+      "display_name": "GPT 5.4-high",
+      "provider_type": "openai-responses",
+      "endpoint": "https://plexus.int.exe.xyz/v1",
+      "api_key_env": "dummy",
+      "model_name": "gpt-5.4",
+      "max_tokens": 270000,
+      "tags": "",
+      "reasoning_effort": "high"
+    },
+    {
+      "display_name": "GPT 5.4-xhigh",
+      "provider_type": "openai-responses",
+      "endpoint": "https://plexus.int.exe.xyz/v1",
+      "api_key_env": "dummy",
+      "model_name": "gpt-5.4",
+      "max_tokens": 270000,
+      "tags": "",
+      "reasoning_effort": "xhigh"
+    },
+    {
+      "display_name": "Kimi K2.5",
+      "provider_type": "openai",
+      "endpoint": "https://plexus.int.exe.xyz/v1",
+      "api_key_env": "dummy",
+      "model_name": "kimi-k2.5",
+      "max_tokens": 270000,
+      "tags": "",
+      "reasoning_effort": ""
+    },
+    {
+      "display_name": "Nemotron 3",
+      "provider_type": "openai",
+      "endpoint": "https://plexus.int.exe.xyz/v1",
+      "api_key_env": "dummy",
+      "model_name": "nemotron-3",
+      "max_tokens": 270000,
+      "tags": "",
+      "reasoning_effort": ""
+    },
+    {
+      "display_name": "MiniMax 2.5",
+      "provider_type": "openai",
+      "endpoint": "https://plexus.int.exe.xyz/v1",
+      "api_key_env": "dummy",
+      "model_name": "minimax-2.5",
+      "max_tokens": 270000,
+      "tags": "",
+      "reasoning_effort": ""
+    },
+    {
+      "display_name": "GLM 5.1",
+      "provider_type": "openai",
+      "endpoint": "https://plexus.int.exe.xyz/v1",
+      "api_key_env": "dummy",
+      "model_name": "glm-5.1",
+      "max_tokens": 270000,
+      "tags": "",
+      "reasoning_effort": ""
+    },
+
+    {
+      "display_name": "Spark",
+      "provider_type": "openai",
+      "endpoint": "https://plexus.int.exe.xyz/v1",
+      "api_key_env": "dummy",
+      "model_name": "spark",
+      "max_tokens": 270000,
+      "tags": "",
+      "reasoning_effort": ""
     }
   ]
 }
