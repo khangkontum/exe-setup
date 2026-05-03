@@ -72,17 +72,17 @@ shelley_model_payload() {
   }'
 }
 
-restart_shelley_after_model_change() {
+restart_shelley_after_setup_changes() {
   if ! command -v systemctl >/dev/null 2>&1; then
     echo "[exe-setup] WARNING: systemctl not found; Shelley restart skipped" >&2
     return 0
   fi
 
-  echo "[exe-setup] Restarting Shelley to load custom model changes..."
+  echo "[exe-setup] Restarting Shelley to load setup changes..."
   if sudo systemctl restart shelley.service; then
     echo "[exe-setup] Shelley restarted"
   else
-    echo "[exe-setup] WARNING: Shelley restart failed; custom models may require a manual restart" >&2
+    echo "[exe-setup] WARNING: Shelley restart failed; setup changes may require a manual restart" >&2
     return 1
   fi
 }
@@ -289,7 +289,5 @@ sync_shelley_models() {
 
   echo "[exe-setup] Shelley model sync done: created=$created updated=$updated skipped=$skipped"
 
-  if [ "$changed" -eq 1 ]; then
-    restart_shelley_after_model_change || return 1
-  fi
+  return 0
 }
