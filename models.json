@@ -1,32 +1,32 @@
 {
-  "subAgentModel": "GPT 5.4-medium",
+  "subAgentModel": "GPT 5.5-medium",
   "models": [
     {
-      "display_name": "GPT 5.4-medium",
+      "display_name": "GPT 5.5-medium",
       "provider_type": "openai-responses",
       "endpoint": "https://plexus.int.exe.xyz/v1",
       "api_key": "dummy",
-      "model_name": "gpt-5.4",
+      "model_name": "gpt-5.5",
       "max_tokens": 270000,
       "tags": "",
       "reasoning_effort": "medium"
     },
     {
-      "display_name": "GPT 5.4-high",
+      "display_name": "GPT 5.5-high",
       "provider_type": "openai-responses",
       "endpoint": "https://plexus.int.exe.xyz/v1",
       "api_key": "dummy",
-      "model_name": "gpt-5.4",
+      "model_name": "gpt-5.5",
       "max_tokens": 270000,
       "tags": "",
       "reasoning_effort": "high"
     },
     {
-      "display_name": "GPT 5.4-xhigh",
+      "display_name": "GPT 5.5-xhigh",
       "provider_type": "openai-responses",
       "endpoint": "https://plexus.int.exe.xyz/v1",
       "api_key": "dummy",
-      "model_name": "gpt-5.4",
+      "model_name": "gpt-5.5",
       "max_tokens": 270000,
       "tags": "",
       "reasoning_effort": "xhigh"
