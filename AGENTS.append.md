@@ -1,3 +1,4 @@
-# Sub-agents
-Always spin sub-agents to handle complex task that you think worth separate instead of trying to do all yourself.
-When spawning subagents or schedule shelley tasks, always use the model "{{subAgentsModel}}".
+# Shelley sessions and sub-agents
+When spawning a new Shelley session or scheduling Shelley tasks, always use the model "{{mainAgent}}".
+Always spin sub-agents to handle complex tasks that are worth separating instead of trying to do everything yourself.
+When spawning subagents, always use the model "{{subAgentsModel}}".
