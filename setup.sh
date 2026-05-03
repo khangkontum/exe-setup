@@ -35,9 +35,12 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
   nvm install --lts
   nvm alias default 'lts/*'
   nvm use default
-elif command -v node >/dev/null 2>&1; then
-  echo "[exe-setup] Node.js already installed: $(node --version), skipping"
+elif command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+  echo "[exe-setup] Node.js already installed: $(node --version), npm: $(npm --version), skipping"
 else
+  if command -v node >/dev/null 2>&1; then
+    echo "[exe-setup] Node.js found without npm; installing standalone Node.js LTS..."
+  fi
   NODE_VERSION=$(curl -fsSL https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false)][0].version')
   echo "[exe-setup] Installing Node.js $NODE_VERSION (standalone)..."
   case "$(uname -m)" in
@@ -55,11 +58,21 @@ else
 fi
 
 # ── pnpm ────────────────────────────────────────────────────────
-if command -v corepack >/dev/null 2>&1 && corepack enable && corepack prepare pnpm@latest --activate; then
-  echo "[exe-setup] pnpm activated via Corepack"
+mkdir -p "$HOME/.local/bin"
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
+
+if command -v corepack >/dev/null 2>&1 && corepack enable --install-directory "$HOME/.local/bin" && corepack prepare pnpm@latest --activate; then
+  echo "[exe-setup] pnpm activated via Corepack in ~/.local/bin"
 else
-  echo "[exe-setup] WARNING: Corepack unavailable or failed; falling back to npm install -g pnpm"
-  npm install -g pnpm
+  echo "[exe-setup] WARNING: Corepack unavailable or failed; falling back to npm install -g --prefix ~/.local pnpm"
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "[exe-setup] ERROR: npm is unavailable; cannot install pnpm" >&2
+    exit 1
+  fi
+  npm install -g --prefix "$HOME/.local" pnpm
 fi
 
 # ── Git global config and hooks ───────────────────────────────
