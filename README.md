@@ -12,6 +12,7 @@ The exeuntu image already includes most tools. This repo only installs/configure
 - `lib/shell.sh` — installed shell helpers
 - `lib/shelley-models.sh` — startup-only Shelley custom model sync
 - `models.json` — editable Shelley custom model list, copied to `~/.config/exe-setup/models.json`
+- `AGENTS.append.md` — extra Shelley instructions appended to `~/.config/shelley/AGENTS.md`
 
 ## Set as exe.dev default
 
@@ -39,6 +40,7 @@ by default:
 
 ```json
 {
+  "subAgentModel": "GPT 5.4-medium",
   "models": []
 }
 ```
@@ -69,6 +71,23 @@ file to sync changes.
 
 Supported `provider_type` values are `anthropic`, `openai`,
 `openai-responses`, and `gemini`.
+
+Set top-level `subAgentModel` to the custom model display name Shelley should use
+for sub-agents and scheduled Shelley tasks. After syncing custom models, setup
+queries `/api/models`, finds the model with an exact `display_name` match, and
+renders that model's `id` into the AGENTS instructions.
+
+
+## Shelley AGENTS instructions
+
+The exeuntu image seeds `/home/exedev/.config/shelley/AGENTS.md` at image build
+time. `setup.sh` runs later on first boot, after systemd starts and after
+Shelley custom model sync, so this repo appends `AGENTS.append.md` into that
+existing file using managed markers. The template supports
+`{{subAgentsModel}}`, which setup replaces with the resolved Shelley model ID
+from `models.json`'s `subAgentModel` display name. Edit
+`~/.config/exe-setup/AGENTS.append.md` or this repo's `AGENTS.append.md`, then
+rerun `setup.sh` to reapply it.
 
 ## Git defaults
 

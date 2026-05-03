@@ -70,7 +70,6 @@
       "tags": "",
       "reasoning_effort": ""
     },
-
     {
       "display_name": "Spark",
       "provider_type": "openai",
@@ -81,5 +80,6 @@
       "tags": "",
       "reasoning_effort": ""
     }
-  ]
+  ],
+  "subAgentModel": "GPT 5.4-medium"
 }

@@ -76,6 +76,9 @@ cp "$SCRIPT_DIR/lib/shell.sh" "$HOME/.config/exe-setup/shell.sh"
 if [ -f "$SCRIPT_DIR/models.json" ] && [ ! -f "$HOME/.config/exe-setup/models.json" ]; then
   cp "$SCRIPT_DIR/models.json" "$HOME/.config/exe-setup/models.json"
 fi
+if [ -f "$SCRIPT_DIR/AGENTS.append.md" ]; then
+  cp "$SCRIPT_DIR/AGENTS.append.md" "$HOME/.config/exe-setup/AGENTS.append.md"
+fi
 upsert_bashrc_source
 
 # Load the freshly written shell defaults for this setup session too.
@@ -83,9 +86,18 @@ upsert_bashrc_source
 . "$HOME/.config/exe-setup/shell.sh"
 
 # ── Shelley custom models ──────────────────────────────────────
+SUB_AGENTS_MODEL=""
 if [ -f "$HOME/.config/exe-setup/models.json" ]; then
   sync_shelley_models "$HOME/.config/exe-setup/models.json" || \
     echo "[exe-setup] WARNING: Shelley custom model sync failed; edit ~/.config/exe-setup/models.json and rerun setup.sh later"
+  SUB_AGENTS_MODEL=$(resolve_sub_agent_model_id "$HOME/.config/exe-setup/models.json") || \
+    echo "[exe-setup] WARNING: Shelley sub-agent model resolution failed"
+fi
+
+# ── Shelley AGENTS instructions ────────────────────────────────
+if [ -f "$HOME/.config/exe-setup/AGENTS.append.md" ]; then
+  apply_shelley_agents_append "$HOME/.config/exe-setup/AGENTS.append.md" "$SUB_AGENTS_MODEL" || \
+    echo "[exe-setup] WARNING: Shelley AGENTS instruction update failed"
 fi
 
 # ── Summary ────────────────────────────────────────────────────

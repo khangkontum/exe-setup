@@ -87,6 +87,69 @@ restart_shelley_after_model_change() {
   fi
 }
 
+
+
+resolve_sub_agent_model_id() {
+  local models_file="$1"
+  local display_name model_list model_id
+
+  display_name=$(jq -r '.subAgentModel // ""' "$models_file") || return 1
+  if [ -z "$display_name" ]; then
+    return 0
+  fi
+
+  echo "[exe-setup] Resolving Shelley sub-agent model: $display_name" >&2
+  wait_for_shelley || return 1
+
+  model_list=$(shelley_api GET /api/models) || return 1
+  model_id=$(printf '%s' "$model_list" | jq -r --arg name "$display_name" '.[] | select(.display_name == $name) | .id' | head -n 1)
+
+  if [ -z "$model_id" ]; then
+    echo "[exe-setup] ERROR: subAgentModel '$display_name' was not found in Shelley model list" >&2
+    return 1
+  fi
+
+  printf '%s\n' "$model_id"
+}
+
+apply_shelley_agents_append() {
+  local append_file="$1"
+  local sub_agents_model="${2:-}"
+  local agents_file="${SHELLEY_AGENTS_FILE:-$HOME/.config/shelley/AGENTS.md}"
+  local start_marker="<!-- exe-setup additions >>> -->"
+  local end_marker="<!-- <<< exe-setup additions -->"
+  local tmpfile rendered_file
+
+  if [ ! -f "$append_file" ]; then
+    echo "[exe-setup] Shelley AGENTS append file not found; skipping: $append_file"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$agents_file")"
+  touch "$agents_file"
+
+  tmpfile=$(mktemp /tmp/exe-agents.XXXXXX)
+  rendered_file=$(mktemp /tmp/exe-agents-rendered.XXXXXX)
+
+  awk -v value="$sub_agents_model" '{ gsub(/{{subAgentsModel}}/, value); print }' "$append_file" > "$rendered_file"
+
+  awk -v start="$start_marker" -v end="$end_marker" '
+    $0 == start { skip = 1; next }
+    $0 == end { skip = 0; next }
+    !skip { print }
+  ' "$agents_file" > "$tmpfile"
+
+  {
+    cat "$tmpfile"
+    printf '\n%s\n' "$start_marker"
+    cat "$rendered_file"
+    printf '\n%s\n' "$end_marker"
+  } > "$agents_file"
+  rm -f "$tmpfile" "$rendered_file"
+
+  echo "[exe-setup] Updated Shelley AGENTS instructions: $agents_file"
+}
+
 sync_shelley_models() {
   local models_file="$1"
   local count existing model_json model_id display_name payload existing_id created=0 updated=0 skipped=0 changed=0
